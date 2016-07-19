@@ -48,4 +48,3 @@ if output_file == '-'
 else
   File.open(output_file, 'w') {|f| f.write lines }
 end
-Status API Training Shop Blog About
