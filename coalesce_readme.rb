@@ -35,6 +35,8 @@ doc = Asciidoctor.load_file source_file, safe: :unsafe, header_only: true, attri
 # NOTE quick and dirty way to get the attributes set or unset by the document header
 header_attr_names = (doc.instance_variable_get :@attributes_modified).to_a
 header_attr_names.each {|k| doc.attributes[%(#{k}!)] = '' unless doc.attr? k }
+attrs = doc.attributes
+attrs['allow-uri-read'] = true
 
 doc = Asciidoctor.load_file source_file, safe: :unsafe, parse: false, attributes: doc.attributes
 # FIXME also escape ifdef, ifndef, ifeval and endif directives
