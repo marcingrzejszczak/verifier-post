@@ -226,7 +226,12 @@ Next, the `Spring Cloud Contract Verifier` Maven plugin
 </plugin>
 ----
 
-Now when we execute:
+Since the plugin was added we get the `Spring Cloud Contract Verifier` features which from the provided contracts:
+
+- generate and run tests
+- produce and install stubs
+
+We don't want to generate tests since we, as consumers, want only to play with the stubs. That's why we need to skip the tests generation and execution. When we execute:
 
 [source,bash,indent=0]
 ----

@@ -388,7 +388,20 @@ org.springframework.cloud.contract.spec.Contract.make {
 </div>
 </div>
 <div class="paragraph">
-<p>Now when we execute:</p>
+<p>Since the plugin was added we get the <code>Spring Cloud Contract Verifier</code> features which from the provided contracts:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>generate and run tests</p>
+</li>
+<li>
+<p>produce and install stubs</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>We don&#8217;t want to generate tests since we, as consumers, want only to play with the stubs. That&#8217;s why we need to skip the tests generation and execution. When we execute:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -783,7 +796,7 @@ git merge --no-ff contract-change-pr</code></pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-07-19 16:10:11 CEST
+Last updated 2016-07-19 16:50:21 CEST
 </div>
 </div>
 </body>
