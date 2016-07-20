@@ -206,7 +206,7 @@ we mark him as fraud.</p>
 going through the process. CDC is all about communication.</p>
 </div>
 <div class="paragraph">
-<p>The <a href="https://github.com/spring-cloud/spring-cloud-contract/tree/master/samples/samples/http-server">server side code is available here</a> and <a href="https://github.com/spring-cloud/spring-cloud-contract/tree/master/samples/samples/http-client">the client side code here</a>.</p>
+<p>The <a href="https://github.com/spring-cloud/spring-cloud-contract/tree/master/samples/standalone/http-server">server side code is available here</a> and <a href="https://github.com/spring-cloud/spring-cloud-contract/tree/master/samples/standalone/http-client">the client side code here</a>.</p>
 </div>
 <div class="sect2">
 <h3 id="_consumer_side_loan_issuance">Consumer side (Loan Issuance)</h3>
@@ -474,13 +474,8 @@ org.springframework.cloud.contract.spec.Contract.make {
 	&lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
-	&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-	&lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
-	&lt;scope&gt;test&lt;/scope&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
 	&lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-	&lt;artifactId&gt;spring-cloud-contract-stub-runner&lt;/artifactId&gt;
+	&lt;artifactId&gt;spring-cloud-starter-contract-stub-runner&lt;/artifactId&gt;
 	&lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -571,18 +566,8 @@ git pull https://your-git-server.com/server-side-fork.git contract-change-pr</co
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-xml" data-lang="xml">&lt;dependency&gt;
-	&lt;groupId&gt;com.jayway.restassured&lt;/groupId&gt;
-	&lt;artifactId&gt;spring-mock-mvc&lt;/artifactId&gt;
-	&lt;scope&gt;test&lt;/scope&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-	&lt;groupId&gt;com.jayway.restassured&lt;/groupId&gt;
-	&lt;artifactId&gt;spring-mock-mvc&lt;/artifactId&gt;
-	&lt;scope&gt;test&lt;/scope&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-	&lt;groupId&gt;com.toomuchcoding.jsonassert&lt;/groupId&gt;
-	&lt;artifactId&gt;jsonassert&lt;/artifactId&gt;
+	&lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+	&lt;artifactId&gt;spring-cloud-starter-contract-verifier&lt;/artifactId&gt;
 	&lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -796,7 +781,7 @@ git merge --no-ff contract-change-pr</code></pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-07-19 20:35:21 CEST
+Last updated 2016-07-20 15:03:45 CEST
 </div>
 </div>
 </body>
