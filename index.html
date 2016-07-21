@@ -17,13 +17,10 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>Microservice approach gives plenty of benefits but also introduces complexity. This is an inevitable result of working with distributed systems. With the increasing complexity more questions are posed. In the Spring Blog we&#8217;re trying to answer them - e.g. recently we tried to tackle the problem related to  <a href="https://spring.io/blog/2016/05/31/zero-downtime-deployment-with-a-database">how to do zero-downtime deployment with a database</a>. This time we&#8217;d like to show how to test microservices and create a better API by using the Consumer Driven Contracts approach.</p>
+<p>The microservice approach has plenty of benefits but also introduces complexity. This is an inevitable result of working with distributed systems: with increasing complexity inevitably more questions are posed. In this article we show how to test microservices and create a better API by using the Consumer Driven Contracts approach. In order to make testing microservices easier we are more than happy to introduce a new project in the family of Spring Cloud projects - Spring Cloud Contract. This project provides support for Consumer Driven Contracts and service schemas in Spring applications, covering a range of options for writing tests, publishing them as assets, asserting that a contract is kept by producers and consumers, for HTTP and message-based interactions.</p>
 </div>
 <div class="paragraph">
-<p>In order to make it easier to tackle the problem of testing microservices we are more than happy to introduce a new project in the family of Spring Cloud projects - Spring Cloud Contract. This project provides support for Consumer Driven Contracts and service schemas in Spring applications, covering a range of options for writing tests, publishing them as assets, asserting that a contract is kept by producers and consumers, for HTTP and message-based interactions.</p>
-</div>
-<div class="paragraph">
-<p>Before we jump into the details let&#8217;s go though some theory.</p>
+<p>This article is a companion of another recent one on <a href="https://spring.io/blog/2016/05/31/zero-downtime-deployment-with-a-database">how to do zero-downtime deployment with a database</a>.</p>
 </div>
 </div>
 </div>
@@ -31,23 +28,26 @@
 <h2 id="_service_providers_and_consumers">Service providers and consumers</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>One of the biggest challenges related to the distributed systems is the agreement on the structure of the message. From that quite a few questions can be posed:</p>
+<p>Before we jump into the details let&#8217;s go though some theory. One of the biggest challenges related to the distributed systems is the agreement on the structure of messages that pass between nodes (by "message" we mean any well-formed, non-streaming data, so that applies to traditional HTTP APIs and also event-based microservices). Here are a few questions that arise when we think about message structure:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>How can the consumer know that the server side has changed its API?</p>
+<p>How can the consumer know that the producer has changed its API?</p>
 </li>
 <li>
-<p>How can the server side know that it&#8217;s going to break the consumers?</p>
+<p>How can the producer side know if it&#8217;s going to break the consumers?</p>
 </li>
 <li>
-<p>Who should create the stub of the server side for the consumer to reuse in the integration tests? How to ensure the quality of those stubs?</p>
+<p>If the consumer is using stubs for testing, who should create those stubs?</p>
+</li>
+<li>
+<p>How can you ensure the quality of stubs?</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>One of the ways to solve these problems is to introduce the notion of a <code>contract</code>. A contract is an agreement between a provider and a consumer in terms of how their communication should look like. The questions remains on who should drive the change of the API, where the contract should be stored and what the contract should contain.</p>
+<p>One of the ways to solve these problems is to introduce the notion of a <code>contract</code>. A contract is an agreement between a provider and a consumer in terms of what their communication should look like. The questions remains on who should drive the change of the API, where the contract should be stored and what the contract should contain.</p>
 </div>
 <div class="paragraph">
 <p>In this blog post we&#8217;ll present the approach called "Consumer Driven Contracts"  together with the new Spring Cloud project called <a href="https://cloud.spring.io/spring-cloud-contract/spring-cloud-contract.html#_spring_cloud_contract_verifier">Spring Cloud Contract Verifier</a> formerly known as Accurest and hosted by the <a href="http://codearte.io">Codearte company</a>.</p>
@@ -61,7 +61,7 @@
 <p>Let&#8217;s imagine a following scenario:</p>
 </div>
 <div class="paragraph">
-<p>The server side team finishes its sprint and changes their application by introducing a new version of the API. Since there is not much time due to tight schedules there were no consultations with the consumers of that API. The consumers had all the server side integrations mocked in their tests and, since nobody has informed them about any changes, they didn&#8217;t update those mocks. That&#8217;s why all the unit and integration tests were still green but end to end tests failed miserably. When the consumers noticed that the server side API has changed they had to invest a lot of time to adjust their production and test code in order to send and receive the new, required data. The consumer team decided that it&#8217;s close to impossible to do that (due to tight schedule and complexity of the changes) so they started filing issues to the server side team to adjust their API. The server side team replies that "there is no time" and that they can "talk to their product owner so he puts that requirement into their backlog".</p>
+<p>The producer side team finishes its sprint and changes their application by introducing a new version of the API. Since there is not much time due to tight schedules there were no consultations with the consumers of that API. The consumers had all the producer side integrations mocked in their tests and, since nobody has informed them about any changes, they didn&#8217;t update those mocks. That&#8217;s why all the unit and integration tests were still green but end to end tests failed miserably. When the consumers noticed that the producer side API has changed they had to invest a lot of time to adjust their production and test code in order to send and receive the new, required data. The consumer team decided that it&#8217;s close to impossible (due to tight schedule and complexity of the changes) so they started filing issues to the producer side team to adjust their API. The producer side team replies that "there is no time" and that they can "talk to their product owner so he puts that requirement into their backlog".</p>
 </div>
 <div class="paragraph">
 <p>If you took a look at the retrospectives of both teams you could see the following.</p>
@@ -75,18 +75,18 @@
 <p>a breaking change was introduced and nobody informed us</p>
 </li>
 <li>
-<p>the server side team hasn&#8217;t consulted their API changes - the new API is unusable</p>
+<p>the producer side team hasn&#8217;t consulted on their API changes - the new API is unusable</p>
 </li>
 <li>
-<p>our integration tests didn&#8217;t catch the change of the server side API</p>
+<p>our integration tests didn&#8217;t catch the change of the producer side API</p>
 </li>
 <li>
-<p>we got completely ignored by the server side team in terms of adjusting their API</p>
+<p>we got completely ignored by the producer side team in terms of adjusting their API</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>For the server side:</p>
+<p>For the producer side:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -94,12 +94,12 @@
 <p>everybody is angry with us but we have to deliver business value</p>
 </li>
 <li>
-<p>we will not update every single consumer team&#8217;s tests when we change our API</p>
+<p>we can not update every single consumer team&#8217;s tests when we change our API</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Rings a bell? Don&#8217;t worry there, are ways to change this approach to make everybody less annoyed.</p>
+<p>Rings a bell? Don&#8217;t worry, there are ways to change this approach to make everybody less annoyed.</p>
 </div>
 </div>
 </div>
@@ -112,37 +112,37 @@
 <div class="ulist">
 <ul>
 <li>
-<p>the API change was not consulted with the consumers</p>
+<p>the API change was not made in consultation with the consumers</p>
 </li>
 <li>
-<p>the stubbing process is owned by the consumers thus no changes of the server side are reflected</p>
+<p>the stubbing process is owned by the consumers thus no changes of the producer side are reflected</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Let&#8217;s focus on the first problem. Do you remember the Test Driven Development (TDD) approach? You start with an expectation in a form of a test, then you write an implementation to make the test pass and finally you refactor to make the code look nicer. "Red, green, refactor" - failing test, passing test, refactored code. TDD is about making mistakes. Mistakes related to the assumption how your code API should look like. It&#8217;s an iterative process that allows you to improve the quality of your code. The developer is the driver of the change of the code&#8217;s API. He is its user, he knows what he wants to achieve so he alters the API until he is happy with the results. Now, let&#8217;s imagine that we move this approach to the level of design&#8230;&#8203;</p>
+<p>Let&#8217;s focus on the first problem. Do you remember the Test Driven Development (TDD) approach? You start with an expectation in a form of a test, then you write an implementation to make the test pass and finally you refactor to make the code look nicer. "Red, green, refactor" - failing test, passing test, refactored code. TDD is about making mistakes. Mistakes related to the assumption how your code API should look like. It&#8217;s an iterative process that allows you to improve the quality of your code. The developer is the driver of the change of the code&#8217;s API. He is its user, he knows what he wants to achieve so he alters the API until he is happy with the results. Now, let&#8217;s imagine that we move this approach to the level of API design&#8230;&#8203;</p>
 </div>
 <div class="paragraph">
-<p>Since the consumers are those who use the API they should be the drivers of the API change. The main difference between that and TDD is that here you have 2 teams taking part in the process - the consumer and the server. This is where you can profit from the Consumer Driven Contract (CDC) approach. A couple of its characteristics are:</p>
+<p>Since the consumers are those who use the API they should be the drivers of the API change. The main difference between that and TDD is that here you have 2 teams taking part in the process - the consumer and the prodcuer. This is where you can profit from the Consumer Driven Contract (CDC) approach. A couple of its characteristics are:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>the server side API is designed by the consumers together with the server side team (communication is crucial!)</p>
+<p>the producer API is designed by the consumers together with the producer team (communication is crucial!)</p>
 </li>
 <li>
-<p>the contracts are written down and have to be obliged by both parties</p>
+<p>the contracts are written down and have to suit both parties</p>
 </li>
 <li>
 <p>the work can be decoupled - once the contracts have been noted down both teams can work independently</p>
 </li>
 <li>
-<p>the server side owns the contracts - this is a strictly defined responsibility of concrete people</p>
+<p>the producer side owns the contracts (this is a strictly defined responsibility of concrete people)</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>As Spring Cloud team what we wanted to achieve is to have a tool that would allow us to:</p>
+<p>The Spring Cloud team wanted to have a tool that would allow us to:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -153,7 +153,7 @@
 <p>make the contracts show some use-cases and not only present structure of the messages</p>
 </li>
 <li>
-<p>generate tests to automatically verify the contracts against the server side</p>
+<p>generate tests to automatically verify the contracts against the producer side</p>
 </li>
 <li>
 <p>automatically produce stubs from the contracts so that the consumers can reuse it</p>
@@ -164,26 +164,29 @@
 </ul>
 </div>
 <div class="paragraph">
-<p><a href="http://cloud.spring.io/spring-cloud-contract/spring-cloud-contract.html#_spring_cloud_contract_verifier">Spring Cloud Contract Verifier</a> solves this problem by providing automated solutions to ensure the quality and reliability of the created contracts and their stubs. It&#8217;s consisting of the following main modules:</p>
+<p><a href="http://cloud.spring.io/spring-cloud-contract/spring-cloud-contract.html#_spring_cloud_contract_verifier">Spring Cloud Contract Verifier</a> solves this problem by providing automated solutions to ensure the quality and reliability of the created contracts and their stubs. It consists of the following main features:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>core part of the library gives you the concept of a Contract</p>
+<p>the core part of the library gives you the concept of a Contract</p>
+</li>
+<li>
+<p>the Verifier is used by producers (usually via the build plugins)</p>
 </li>
 <li>
 <p>Spring Cloud Contract Verifier Maven / Gradle plugins give you the functionality of converting the Contract into tests and WireMock stubs (<a href="http://wiremock.org">WireMock is a HTTP server stub</a>)</p>
 </li>
 <li>
-<p>Spring Cloud Contract Stub Runner allows you to automatically download stubs of the provided collaborators and starts in memory HTTP stubbed servers in your integration tests</p>
+<p>Spring Cloud Contract Stub Runner allows consumers to automatically download stubs of upstream producers and start in memory HTTP stubbed servers in your integration tests</p>
 </li>
 <li>
-<p>messaging part of Spring Cloud Contract Stub Runner allows you to send / receive messages described in the contracts</p>
+<p>Spring Cloud Contract Stub Runner also allows consumers to send and receive messages (via Spring Integration, Spring Cloud Stream or Apache Camel) described in the contracts</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Let&#8217;s look at the following step by step example how to use the tool in case of the HTTP communication.</p>
+<p>Let&#8217;s look at the following step-by-step example how to use the tool in case of the HTTP communication.</p>
 </div>
 </div>
 </div>
@@ -202,11 +205,11 @@ we mark him as fraud.</p>
 <p>Technical remark - Fraud Detection will have artifact id <code>http-server</code>, Loan Issuance <code>http-client</code> and both have group id <code>com.example</code>.</p>
 </div>
 <div class="paragraph">
-<p>Social remark - both client and server development teams need to communicate directly and discuss changes while
+<p>Social remark - both consumer and producer development teams need to communicate directly and discuss changes while
 going through the process. CDC is all about communication.</p>
 </div>
 <div class="paragraph">
-<p>The <a href="https://github.com/spring-cloud/spring-cloud-contract/tree/master/samples/standalone/http-server">server side code is available here</a> and <a href="https://github.com/spring-cloud/spring-cloud-contract/tree/master/samples/standalone/http-client">the client side code here</a>.</p>
+<p>The <a href="https://github.com/spring-cloud/spring-cloud-contract/tree/master/samples/standalone/http-server">producer code is available here</a> and <a href="https://github.com/spring-cloud/spring-cloud-contract/tree/master/samples/standalone/http-client">consumer code here</a>.</p>
 </div>
 <div class="sect2">
 <h3 id="_consumer_side_loan_issuance">Consumer side (Loan Issuance)</h3>
@@ -259,11 +262,11 @@ public void shouldBeRejectedDueToAbnormalLoanAmount() {
 <p><strong>clone the Fraud Detection service repository locally</strong></p>
 </div>
 <div class="paragraph">
-<p>We&#8217;ll start playing around with the server side contract. That&#8217;s why we need to first clone it.</p>
+<p>We&#8217;ll start playing around with the producer side. That&#8217;s why we need to first clone it.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">git clone https://your-git-server.com/server-side.git local-http-server-repo</code></pre>
+<pre class="highlight"><code class="language-bash" data-lang="bash">git clone https://your-git-server.com/server.git local-http-server-repo</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -274,35 +277,7 @@ public void shouldBeRejectedDueToAbnormalLoanAmount() {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-groovy" data-lang="groovy">package contracts
-
-org.springframework.cloud.contract.spec.Contract.make {
-				request {
-				method 'PUT'
-				url '/fraudcheck'
-				body("""
-					{
-					"clientId":"${value(client(regex('[0-9]{10}')), server('1234567890'))}",
-					"loanAmount":99999}
-				"""
-				)
-				headers {
-					header('Content-Type', 'application/vnd.fraud.v1+json')
-				}
-
-			}
-			response {
-				status 200
-				body( """{
-	"fraudCheckStatus": "${value(client('FRAUD'), server(regex('[A-Z]{5}')))}",
-	"rejectionReason": "Amount too high"
-}""")
-				headers {
-					 header('Content-Type': value(server(regex('application/vnd.fraud.v1.json.*')), client('application/vnd.fraud.v1+json')))
-					}
-			}
-
-}</code></pre>
+<pre class="highlight"><code class="language-groovy" data-lang="groovy"></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -525,13 +500,13 @@ public class LoanApplicationServiceTests {</code></pre>
 <p>What we did until now is an iterative process. We can play around with the contract, install it locally and work on the consumer side until we&#8217;re happy with the contract.</p>
 </div>
 <div class="paragraph">
-<p>Once we&#8217;re satisfied with the results and the test passes publish a PR to the server side. Currently the consumer side work is done.</p>
+<p>Once we&#8217;re satisfied with the results and the test passes publish a PR to the producer side. At this point the consumer side work is done.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_producer_side_fraud_detection_server">Producer side (Fraud Detection server)</h3>
 <div class="paragraph">
-<p>As a developer of the Fraud Detection server (a server to the Loan Issuance service):</p>
+<p>As a developer of the Fraud Detection server (a producer of messages consumed by the Loan Issuance service):</p>
 </div>
 <div class="paragraph">
 <p><strong>initial implementation</strong></p>
@@ -547,8 +522,7 @@ public class LoanApplicationServiceTests {</code></pre>
 		consumes = FRAUD_SERVICE_JSON_VERSION_1,
 		produces = FRAUD_SERVICE_JSON_VERSION_1)
 public FraudCheckResult fraudCheck(@RequestBody FraudCheck fraudCheck) {
-return new FraudCheckResult(FraudCheckStatus.OK, NO_REASON);
-}</code></pre>
+return new FraudCheckResult(FraudCheckStatus.OK, NO_REASON);</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -589,7 +563,7 @@ git pull https://your-git-server.com/server-side-fork.git contract-change-pr</co
 </div>
 </div>
 <div class="paragraph">
-<p>That&#8217;s because all the generated tests will extend that class. Over there you can set up your Spring Context or whatever is necessary. In our case we&#8217;re using <a href="http://rest-assured.io/">Rest Assured MVC</a> to start the server side <code>FraudDetectionController</code>.</p>
+<p>That&#8217;s because all the generated tests will extend that class. Over there you can set up your Spring Context or whatever is necessary. In our case we&#8217;re using <a href="http://rest-assured.io/">Rest Assured MVC</a> to start the producer side <code>FraudDetectionController</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -700,7 +674,7 @@ git push origin master</code></pre>
 <div class="sect2">
 <h3 id="_consumer_side_loan_issuance_final_step">Consumer side (Loan Issuance) final step</h3>
 <div class="paragraph">
-<p>As a developer of the Loan Issuance service (a consumer of the Fraud Detection server):</p>
+<p>As a developer of the Loan Issuance service (a consumer of the Fraud Detection service):</p>
 </div>
 <div class="paragraph">
 <p><strong>merge branch to master</strong></p>
@@ -715,7 +689,7 @@ git merge --no-ff contract-change-pr</code></pre>
 <p><strong>work online</strong></p>
 </div>
 <div class="paragraph">
-<p>Now you can disable the offline work for Spring Cloud Contract Stub Runner ad provide where the repository with your stubs is placed. At this moment the stubs of the server side will be automatically downloaded from Nexus / Artifactory.</p>
+<p>Now you can disable the offline work for Spring Cloud Contract Stub Runner ad provide where the repository with your stubs is placed. At this moment the stubs of the producer side will be automatically downloaded from Nexus / Artifactory.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -739,7 +713,7 @@ git merge --no-ff contract-change-pr</code></pre>
 <div class="ulist">
 <ul>
 <li>
-<p>an API that suits the consumer and the server side</p>
+<p>an API that suits the consumer and the producer</p>
 </li>
 <li>
 <p>readable contracts that were tested against the producer</p>
@@ -781,7 +755,7 @@ git merge --no-ff contract-change-pr</code></pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-07-20 15:03:45 CEST
+Last updated 2016-07-21 09:58:08 BST
 </div>
 </div>
 </body>
