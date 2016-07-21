@@ -132,6 +132,7 @@ As consumers we need to define what exactly we want to achieve. We need to formu
 
 [source,groovy,indent=0]
 ----
+include::{introduction_url}/samples/standalone/http-server/src/test/resources/contracts/shouldMarkClientAsFraud.groovy[]
 ----
 
 The Contract is written using a statically typed Groovy DSL. You might be wondering what are those `${value(client(...), server(...))}` parts. So the `${}` is a String interpolation in Groovy. You can resolve a variable inside a String. In other words `"concat ${foo} and ${bar}"` is the same as `"concat " + foo + " and " + bar`. The `value(client(...), server(...))` allows you to define parts of a JSON which are dynamic. In case of an identifier or a timestamp you don't want to hardcode a value. You want to allow some different ranges of values. That's why for the consumer side you can set regular expressions matching those values. You can provide the body either by means of String with interpolations or with a map notation. https://cloud.spring.io/spring-cloud-contract/spring-cloud-contract.html#_contract_dsl[Consult the docs for more information.]
