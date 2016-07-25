@@ -1,7 +1,9 @@
 :repo_url: https://github.com/spring-cloud/spring-cloud-contract/tree/master/samples
 :introduction_url: https://raw.githubusercontent.com/spring-cloud/spring-cloud-contract/master
 
-= Spring Cloud Contract
+On behalf of the Spring Cloud team - it is my pleasure to announce the 1.0.0.M1 release of the new Spring Cloud project called Spring Cloud Contract. You can grab it from the (https://repo.spring.io/milestone/)[Spring's milestone repository] or even better - go to (http://start.spring.io)[start.spring.io] and pick it from there.
+
+== Spring Cloud Contract
 
 The microservice approach has plenty of benefits but also introduces complexity. This is an inevitable result of working with distributed systems: with increasing complexity inevitably more questions are posed. In this article we show how to test microservices and create a better API by using the Consumer Driven Contracts approach. In order to make testing microservices easier we are more than happy to introduce a new project in the family of Spring Cloud projects - Spring Cloud Contract. This project provides support for Consumer Driven Contracts and service schemas in Spring applications, covering a range of options for writing tests, publishing them as assets, asserting that a contract is kept by producers and consumers, for HTTP and message-based interactions.
 
@@ -532,6 +534,7 @@ In this example you could see how to use the `Spring Cloud Contract Verifier` in
 == Additional Reading
 
 - http://martinfowler.com/articles/consumerDrivenContracts.html[Consumer Driven Contracts by Ian Robinson]
+- https://github.com/spring-cloud/spring-cloud-contract/[Spring Cloud Contract repository]
 - https://cloud.spring.io/spring-cloud-contract/spring-cloud-contract.html[Spring Cloud Contract documentation]
 - https://cloud.spring.io/spring-cloud-contract/spring-cloud-contract.html#_spring_cloud_contract_verifier[Spring Cloud Contract Verifier documentation]
 - https://cloud.spring.io/spring-cloud-contract/spring-cloud-contract-maven-plugin/[Spring Cloud Contract Verifier Maven Plugin documentation]
