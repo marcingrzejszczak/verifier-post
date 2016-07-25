@@ -196,7 +196,7 @@ The aforementioned contract is an agreement between two sides that:
 
 Once we're ready to check the API in practice in the integration tests we need to just install the stubs locally
 
-*add the Spring Cloud Contract Verifier plugin*
+*add the Spring Cloud Contract Verifier plugin to the server side*
 
 We can add either Maven or Gradle plugin - in this example we'll show how to add Maven. First we need to add the `Spring Cloud Contract` BOM.
 
